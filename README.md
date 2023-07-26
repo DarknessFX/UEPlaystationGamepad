@@ -34,8 +34,8 @@ Now that Unreal Engine 5.2 is moving the input system to Enhanced Input there ar
 Playstation gamepads DPad use Axis1D directional inputs, the Axis1D register from 0.0f to 8.0f : 0=Top, 2=Right, 4=Bottom, 6=Left, 8=No Input.<br/><br/>
 Unreal Engine don't expect DPad directions from axis values, only as buttons pressed/released, to enable compatibility with CommonUI, EnhancedInput and other XInput gamepads you need to modify the *RawInput Plugin* with the following changes:<br/><br/>
 If you prefer you can download my source files from:<br/>
-<a href="https://github.com/DarknessFX/UEPlaystationGamepad/.git_files/RawInputWindows.h" target="_blank">RawInputWindows.h</a><br/>
-<a href="https://github.com/DarknessFX/UEPlaystationGamepad/.git_files/RawInputWindows.cpp" target="_blank">RawInputWindows.cpp</a><br/>
+<a href="https://github.com/DarknessFX/UEPlaystationGamepad/tree/main/.git_files/RawInputWindows.h" target="_blank">RawInputWindows.h</a><br/>
+<a href="https://github.com/DarknessFX/UEPlaystationGamepad/tree/main/.git_files/RawInputWindows.cpp" target="_blank">RawInputWindows.cpp</a><br/>
 <br/>
 *Engine\Plugins\Experimental\RawInput\Source\RawInput\Public\Windows\RawInputWindows.h*<br/>
 *Line 329 at the end of the file, add* :<br/>
