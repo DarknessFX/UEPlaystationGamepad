@@ -86,8 +86,8 @@ void FRawWindowsDeviceEntry::InitializeNameArrays()
 	DPadMap[4] = FGamepadKeyNames::DPadDown;
 	DPadMap[6] = FGamepadKeyNames::DPadLeft;
 
-	psID[0] = { 1356, 2508, 4 }; // DS4 GEN2
-	psID[1] = { 1356, 1476, 4 }; // DS4 GEN1
+	psID[0] = { 1356, 1476, 4 }; // DS4 GEN1
+	psID[1] = { 1356, 2508, 4 }; // DS4 GEN2
 	psID[2] = { 1356, 3302, 7 }; // DualSense
 }
 
