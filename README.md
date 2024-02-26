@@ -43,23 +43,24 @@ If you prefer you can download my source files from:<br/>
 //Playstation DPad
 FName DPadMap[7] = {};
 struct PlaystationID {
-  int32 vID; // VendorID
-  int32 pID; // ProductID
-  int32 aID; // Array Index
-} psID[2];
+	int32 vID; // VendorID
+	int32 pID; // ProductID
+	int32 aID; // Array Index
+} psID[3];
 ```
 <br/>
 
 *Engine\Plugins\Experimental\RawInput\Source\RawInput\Private\Windows\RawInputWindows.cpp*<br/>
 *Line 84, inside void FRawWindowsDeviceEntry::InitializeNameArrays(), add* : <br/>
 ```c++
-  DPadMap[0] = FGamepadKeyNames::DPadUp;
-  DPadMap[2] = FGamepadKeyNames::DPadRight;
-  DPadMap[4] = FGamepadKeyNames::DPadDown;
-  DPadMap[6] = FGamepadKeyNames::DPadLeft;
+	DPadMap[0] = FGamepadKeyNames::DPadUp;
+	DPadMap[2] = FGamepadKeyNames::DPadRight;
+	DPadMap[4] = FGamepadKeyNames::DPadDown;
+	DPadMap[6] = FGamepadKeyNames::DPadLeft;
 
-  psID[0] = {1356, 2508, 4};
-  psID[1] = {1356, 3302, 7};
+	psID[0] = { 1356, 1476, 4 }; // DS4 GEN1
+	psID[1] = { 1356, 2508, 4 }; // DS4 GEN2
+	psID[2] = { 1356, 3302, 7 }; // DualSense
 ```
 <br/>
 
