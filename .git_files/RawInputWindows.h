@@ -326,10 +326,10 @@ private:
 
 typedef FRawInputWindows FPlatformRawInput;
 
-//Playstation DPad
+//Playstation DPad. DPadMap Index size for 8 inputs
 FName DPadMap[7] = {};
 struct PlaystationID {
-  int32 vID; // VendorID
-  int32 pID; // ProductID
-  int32 aID; // Array Index
-} psID[2];
+	int32 vID; // VendorID
+	int32 pID; // ProductID
+	int32 aID; // Array Index
+} psID[3];

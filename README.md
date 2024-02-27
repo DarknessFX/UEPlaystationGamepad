@@ -43,57 +43,61 @@ If you prefer you can download my source files from:<br/>
 //Playstation DPad
 FName DPadMap[7] = {};
 struct PlaystationID {
-  int32 vID; // VendorID
-  int32 pID; // ProductID
-  int32 aID; // Array Index
-} psID[2];
+	int32 vID; // VendorID
+	int32 pID; // ProductID
+	int32 aID; // Array Index
+} psID[3];
 ```
 <br/>
 
 *Engine\Plugins\Experimental\RawInput\Source\RawInput\Private\Windows\RawInputWindows.cpp*<br/>
 *Line 84, inside void FRawWindowsDeviceEntry::InitializeNameArrays(), add* : <br/>
 ```c++
-  DPadMap[0] = FGamepadKeyNames::DPadUp;
-  DPadMap[2] = FGamepadKeyNames::DPadRight;
-  DPadMap[4] = FGamepadKeyNames::DPadDown;
-  DPadMap[6] = FGamepadKeyNames::DPadLeft;
+	DPadMap[0] = FGamepadKeyNames::DPadUp;
+	DPadMap[2] = FGamepadKeyNames::DPadRight;
+	DPadMap[4] = FGamepadKeyNames::DPadDown;
+	DPadMap[6] = FGamepadKeyNames::DPadLeft;
 
-  psID[0] = {1356, 2508, 4};
-  psID[1] = {1356, 3302, 7};
+	psID[0] = { 1356, 1476, 4 }; // DS4 GEN1
+	psID[1] = { 1356, 2508, 4 }; // DS4 GEN2
+	psID[2] = { 1356, 3302, 7 }; // DualSense
 ```
 <br/>
 
 *Line 1049, inside if (DeviceEntry.bNeedsUpdate) { before the endif }, add* : <br/>
 ```c++
-      for (PlaystationID &ps : psID) {
-        if (DeviceEntry.DeviceData.VendorID == ps.vID && DeviceEntry.DeviceData.ProductID== ps.pID) {
-          FAnalogData* DPadAxis1D = &DeviceEntry.AnalogData[ps.aID];
-          int iPrevValue = FMath::FloorToInt(DPadAxis1D->PreviousValue);
-          int iValue = FMath::FloorToInt(DPadAxis1D->Value);
-          bool bIsRepeat = iValue == iPrevValue;
+			for (PlaystationID& ps : psID) {
+				if (DeviceEntry.DeviceData.VendorID == ps.vID && DeviceEntry.DeviceData.ProductID == ps.pID) {
+					FAnalogData* DPadAxis1D = &DeviceEntry.AnalogData[ps.aID];
+					int iPrevValue = FMath::FloorToInt(DPadAxis1D->PreviousValue);
+					int iValue = FMath::FloorToInt(DPadAxis1D->Value);
+					bool bIsRepeat = iValue == iPrevValue;
 
-          if (!bIsRepeat) {
-            if (iPrevValue != 8) {
-              if (iPrevValue % 2 == 1) {
-                MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue - 1], UserId, DeviceId, bIsRepeat); 
-                iPrevValue++;
-                if (iPrevValue == 8) iPrevValue = 0;
-              }
-              MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue], UserId, DeviceId, bIsRepeat); 
-            }
+					if (!bIsRepeat) {
+						if (iPrevValue != 8) {
+							if (iPrevValue % 2 == 1) {
+								MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue - 1], UserId, DeviceId, bIsRepeat);
+								iPrevValue++;
+								if (iPrevValue == 8) iPrevValue = 0;
+							}
+							MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue], UserId, DeviceId, bIsRepeat);
+						}
 
-            if (iValue != 8) {
-              if (iValue % 2 == 1) {
-                MessageHandler->OnControllerButtonPressed(DPadMap[iValue - 1], UserId, DeviceId, bIsRepeat); 
-                iValue++;
-                if (iValue == 8.0f) iValue = 0.0f;
-              }
-              MessageHandler->OnControllerButtonPressed(DPadMap[iValue], UserId, DeviceId, bIsRepeat); 
-            }
-            DPadAxis1D->PreviousValue = DPadAxis1D->Value;
-          }
-        }
-      }
+						if (iValue != 8) {
+							if (iValue % 2 == 1) {
+								MessageHandler->OnControllerButtonPressed(DPadMap[iValue - 1], UserId, DeviceId, bIsRepeat);
+								iValue++;
+								if (iValue == 8.0f) iValue = 0.0f;
+							}
+							MessageHandler->OnControllerButtonPressed(DPadMap[iValue], UserId, DeviceId, bIsRepeat);
+						}
+						DPadAxis1D->PreviousValue = DPadAxis1D->Value;
+					}
+				}
+			}
+		}
+	}
+}
 ```
 
 ## Credits
