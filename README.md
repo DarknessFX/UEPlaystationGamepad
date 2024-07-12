@@ -26,7 +26,6 @@ Now that Unreal Engine 5.2 is moving the input system to Enhanced Input there ar
 ## Notes
 
 - You can have all 3 controllers connected to your PC USB.
-- If you have a DualShock4 1st Generation (Product ID 0x05C4) the project will inform you with a screen message, I don't have one to test but if you have (and want to contribute) send the RawInput Settings to me.
 - Basic Enhanced Input Action setup (only Buttons and Axes - Pressed and Released), for more information how to expand and create more Input Actions check <a href="https://docs.unrealengine.com/5.1/en-US/enhanced-input-in-unreal-engine/" target="_blank">Enhanced Input - An overview of the Enhanced Input Plugin.</a> and <a href="https://dev.epicgames.com/community/learning/tutorials/eD13/unreal-engine-enhanced-input-in-ue5" target="_blank">Enhanced Input in UE5 - Official Tutorial</a>.
 
 ## DPad compatibility with CommonUI
