@@ -28,76 +28,13 @@ Now that Unreal Engine 5.2 is moving the input system to Enhanced Input there ar
 - You can have all 3 controllers connected to your PC USB.
 - Basic Enhanced Input Action setup (only Buttons and Axes - Pressed and Released), for more information how to expand and create more Input Actions check <a href="https://docs.unrealengine.com/5.1/en-US/enhanced-input-in-unreal-engine/" target="_blank">Enhanced Input - An overview of the Enhanced Input Plugin.</a> and <a href="https://dev.epicgames.com/community/learning/tutorials/eD13/unreal-engine-enhanced-input-in-ue5" target="_blank">Enhanced Input in UE5 - Official Tutorial</a>.
 
-## DPad compatibility with CommonUI
+## RawInput Changes
 
-Playstation gamepads DPad use Axis1D directional inputs, the Axis1D register from 0.0f to 8.0f : 0=Top, 2=Right, 4=Bottom, 6=Left, 8=No Input.<br/><br/>
-Unreal Engine don't expect DPad directions from axis values, only as buttons pressed/released, to enable compatibility with CommonUI, EnhancedInput and other XInput gamepads you need to modify the *RawInput Plugin* with the following changes:<br/><br/>
-If you prefer you can download my source files from:<br/>
-<a href="https://github.com/DarknessFX/UEPlaystationGamepad/tree/main/.git_files/RawInputWindows.h" target="_blank">RawInputWindows.h</a><br/>
-<a href="https://github.com/DarknessFX/UEPlaystationGamepad/tree/main/.git_files/RawInputWindows.cpp" target="_blank">RawInputWindows.cpp</a><br/>
+Download and update this files from RawInput Plugin:<br/>
+<a href="https://github.com/DarknessFX/UEPlaystationGamepad/RawInput_Plugin/RawInputWindows.h" target="_blank">RawInputWindows.h</a><br/>
+<a href="https://github.com/DarknessFX/UEPlaystationGamepad/RawInput_Plugin/RawInputWindows.cpp" target="_blank">RawInputWindows.cpp</a><br/>
 <br/>
-*Engine\Plugins\Experimental\RawInput\Source\RawInput\Public\Windows\RawInputWindows.h*<br/>
-*Line 329 at the end of the file, add* :<br/>
-```c++
-//Playstation DPad
-FName DPadMap[7] = {};
-struct PlaystationID {
-	int32 vID; // VendorID
-	int32 pID; // ProductID
-	int32 aID; // Array Index
-} psID[3];
-```
-<br/>
-
-*Engine\Plugins\Experimental\RawInput\Source\RawInput\Private\Windows\RawInputWindows.cpp*<br/>
-*Line 84, inside void FRawWindowsDeviceEntry::InitializeNameArrays(), add* : <br/>
-```c++
-	DPadMap[0] = FGamepadKeyNames::DPadUp;
-	DPadMap[2] = FGamepadKeyNames::DPadRight;
-	DPadMap[4] = FGamepadKeyNames::DPadDown;
-	DPadMap[6] = FGamepadKeyNames::DPadLeft;
-
-	psID[0] = { 1356, 1476, 4 }; // DS4 GEN1
-	psID[1] = { 1356, 2508, 4 }; // DS4 GEN2
-	psID[2] = { 1356, 3302, 7 }; // DualSense
-```
-<br/>
-
-*Line 1049, inside if (DeviceEntry.bNeedsUpdate) { before the endif }, add* : <br/>
-```c++
-			for (PlaystationID& ps : psID) {
-				if (DeviceEntry.DeviceData.VendorID == ps.vID && DeviceEntry.DeviceData.ProductID == ps.pID) {
-					FAnalogData* DPadAxis1D = &DeviceEntry.AnalogData[ps.aID];
-					int iPrevValue = FMath::FloorToInt(DPadAxis1D->PreviousValue);
-					int iValue = FMath::FloorToInt(DPadAxis1D->Value);
-					bool bIsRepeat = iValue == iPrevValue;
-
-					if (!bIsRepeat) {
-						if (iPrevValue != 8) {
-							if (iPrevValue % 2 == 1) {
-								MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue - 1], UserId, DeviceId, bIsRepeat);
-								iPrevValue++;
-								if (iPrevValue == 8) iPrevValue = 0;
-							}
-							MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue], UserId, DeviceId, bIsRepeat);
-						}
-
-						if (iValue != 8) {
-							if (iValue % 2 == 1) {
-								MessageHandler->OnControllerButtonPressed(DPadMap[iValue - 1], UserId, DeviceId, bIsRepeat);
-								iValue++;
-								if (iValue == 8.0f) iValue = 0.0f;
-							}
-							MessageHandler->OnControllerButtonPressed(DPadMap[iValue], UserId, DeviceId, bIsRepeat);
-						}
-						DPadAxis1D->PreviousValue = DPadAxis1D->Value;
-					}
-				}
-			}
-		}
-	}
-}
-```
+Compile RawInput plugin with this updates to apply fixes and make full use of Playstation Gamepads as Native Unreal Engine Gamepads.
 
 ## Credits
 
