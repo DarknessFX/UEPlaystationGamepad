@@ -31,8 +31,8 @@ Now that Unreal Engine 5.2 is moving the input system to Enhanced Input there ar
 ## RawInput Changes
 
 Download and update this files from RawInput Plugin:<br/>
-<a href="https://github.com/DarknessFX/UEPlaystationGamepad/RawInput_Plugin/RawInputWindows.h" target="_blank">RawInputWindows.h</a><br/>
-<a href="https://github.com/DarknessFX/UEPlaystationGamepad/RawInput_Plugin/RawInputWindows.cpp" target="_blank">RawInputWindows.cpp</a><br/>
+<a href="https://raw.githubusercontent.com/DarknessFX/UEPlaystationGamepad/main/RawInput_Plugin/RawInputWindows.h" target="_blank">RawInputWindows.h</a><br/>
+<a href="https://raw.githubusercontent.com/DarknessFX/UEPlaystationGamepad/main/RawInput_Plugin/RawInputWindows.cpp" target="_blank">RawInputWindows.cpp</a><br/>
 <br/>
 Compile RawInput plugin with this updates to apply fixes and make full use of Playstation Gamepads as Native Unreal Engine Gamepads.
 
