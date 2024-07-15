@@ -1073,9 +1073,6 @@ void FRawInputWindows::SendControllerEvents()
 
 			for (PlaystationID& ps : psID) {
 				if (DeviceEntry.DeviceData.VendorID == ps.vID && DeviceEntry.DeviceData.ProductID == ps.pID) {
-          if (ps.aID == 0) {
-            ps.aID = 0;
-          }
 					FAnalogData* DPadAxis1D = &DeviceEntry.AnalogData[ps.aID];
 					int iPrevValue = FMath::FloorToInt(DPadAxis1D->PreviousValue);
 					int iValue = FMath::FloorToInt(DPadAxis1D->Value);
