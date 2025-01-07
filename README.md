@@ -32,7 +32,7 @@ Now that Unreal Engine 5.2 is moving the input system to Enhanced Input there ar
 
 > [!WARNING]
 > If you download your UnrealEngine from Epic Games Store, don't try to make this changes. It won't work.<br/>
-> You need to download Unreal Engine Source Code from GitHub ( https://github.com/EpicGames/UnrealEngine ), setup, build the whole engine, then make the changes to UnrealEngine_Source\Engine\Plugins\Experimental\RawInput and rebuild.
+> You need to download Unreal Engine Source Code from GitHub ( https://github.com/EpicGames/UnrealEngine ), setup, build the whole engine, then make the changes to UnrealEngine_Source\Engine\Plugins\Experimental\RawInput\Source\RawInput\Private+Public\Windows and rebuild.
 
 Download and update this files from RawInput Plugin:<br/>
 <a href="https://raw.githubusercontent.com/DarknessFX/UEPlaystationGamepad/main/RawInput_Plugin/RawInputWindows.h" target="_blank">RawInputWindows.h</a><br/>
