@@ -45,6 +45,7 @@ Compile RawInput plugin with this updates to apply fixes and make full use of Pl
 Unreal Engine from Epic Games - https://www.unrealengine.com/ <br/>
 Playstation DualShock4 Icons by Arks - https://arks.itch.io/ps4-buttons <br/>
 <a href="https://github.com/Equ1no0x">Equ1no0x</a> - DualShock4 Gen1 contribution. <br/>
+<a href="https://github.com/Zhibade">Zhibade</a> - DualShock4 Gen1 Input Mapping. <br/>
 
 ## License
 
