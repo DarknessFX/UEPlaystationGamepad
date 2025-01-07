@@ -12,11 +12,11 @@
 
            DarknessFX @ https://dfx.lv | Twitter: @DrkFX
 
-# Playstation Gamepad For Unreal Engine 5.2
+# Playstation Gamepad For Unreal Engine 5
 
 <img src="https://repository-images.githubusercontent.com/591609859/7d082190-0d09-44dd-9c24-2451a1da4dc7" width="640px" /> <br/>
 
-Playstation Gamepad For Unreal Engine 5.2 using Raw Input and Enhanced Input. This project is setup to enable DualShock3/Sixaxis, DualShock4 and DualSense controllers to bind with Unreal Engine Gamepad object, you can use your Playstation controllers for Gameplay, CommonUI, EnhancedInput with the same Gamepad code like other XInput gamepads instead of fork to GenericUSBController.<br/>
+Playstation Gamepad For Unreal Engine (5.2 or newer) using Raw Input and Enhanced Input. This project is setup to enable DualShock3/Sixaxis, DualShock4 and DualSense controllers to bind with Unreal Engine Gamepad object, you can use your Playstation controllers for Gameplay, CommonUI, EnhancedInput with the same Gamepad code like other XInput gamepads instead of fork to GenericUSBController.<br/>
 
 ## About
 
@@ -30,7 +30,7 @@ Now that Unreal Engine 5.2 is moving the input system to Enhanced Input there ar
 
 ## RawInput Changes (Only for UnrealEngine build from source code)
 
-> [!NOTE]
+> [!WARNING]
 > If you download your UnrealEngine from Epic Games Store, don't try to make this changes. It won't work.
 > You need to download Unreal Engine Source Code from GitHub ( https://github.com/EpicGames/UnrealEngine ), setup, build the whole engine, then make the changes to UnrealEngine_Source\Engine\Plugins\Experimental\RawInput and rebuild.
 
