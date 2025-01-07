@@ -28,7 +28,11 @@ Now that Unreal Engine 5.2 is moving the input system to Enhanced Input there ar
 - You can have all 3 controllers connected to your PC USB.
 - Basic Enhanced Input Action setup (only Buttons and Axes - Pressed and Released), for more information how to expand and create more Input Actions check <a href="https://docs.unrealengine.com/5.1/en-US/enhanced-input-in-unreal-engine/" target="_blank">Enhanced Input - An overview of the Enhanced Input Plugin.</a> and <a href="https://dev.epicgames.com/community/learning/tutorials/eD13/unreal-engine-enhanced-input-in-ue5" target="_blank">Enhanced Input in UE5 - Official Tutorial</a>.
 
-## RawInput Changes
+## RawInput Changes (Only for UnrealEngine build from source code)
+
+> [!NOTE]
+> If you download your UnrealEngine from Epic Games Store, don't try to make this changes. It won't work.
+> You need to download Unreal Engine Source Code from GitHub ( https://github.com/EpicGames/UnrealEngine ), setup, build the whole engine, then make the changes to UnrealEngine_Source\Engine\Plugins\Experimental\RawInput and rebuild.
 
 Download and update this files from RawInput Plugin:<br/>
 <a href="https://raw.githubusercontent.com/DarknessFX/UEPlaystationGamepad/main/RawInput_Plugin/RawInputWindows.h" target="_blank">RawInputWindows.h</a><br/>
