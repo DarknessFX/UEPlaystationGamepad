@@ -74,22 +74,22 @@ FRawWindowsDeviceEntry::FRawWindowsDeviceEntry(const FRawInputRegisteredDevice& 
 	: DeviceData(InDeviceData)
 {
 	InitializeNameArrays();
+
+  DPadMap[0] = FGamepadKeyNames::DPadUp;
+  DPadMap[2] = FGamepadKeyNames::DPadRight;
+  DPadMap[4] = FGamepadKeyNames::DPadDown;
+  DPadMap[6] = FGamepadKeyNames::DPadLeft;
+
+  psID[0] = { 1356, 1476, 4 }; // DS4 GEN1
+  psID[1] = { 1356, 2508, 4 }; // DS4 GEN2
+  psID[2] = { 1356, 3302, 7 }; // DualSense
+  psID[3] = { 1356, 616,  0 }; // DualShock3
 }
 
 void FRawWindowsDeviceEntry::InitializeNameArrays()
 {
 	ButtonData.AddDefaulted(MAX_NUM_CONTROLLER_BUTTONS);
 	AnalogData.AddDefaulted(MAX_NUM_CONTROLLER_ANALOG);
-
-	DPadMap[0] = FGamepadKeyNames::DPadUp;
-	DPadMap[2] = FGamepadKeyNames::DPadRight;
-	DPadMap[4] = FGamepadKeyNames::DPadDown;
-	DPadMap[6] = FGamepadKeyNames::DPadLeft;
-
-	psID[0] = { 1356, 1476, 4 }; // DS4 GEN1
-	psID[1] = { 1356, 2508, 4 }; // DS4 GEN2
-	psID[2] = { 1356, 3302, 7 }; // DualSense
-  psID[3] = { 1356, 616,  0 }; // DualShock3
 }
 
 FRawInputWindows::FRawInputWindows(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
@@ -103,15 +103,15 @@ FRawInputWindows::FRawInputWindows(const TSharedRef<FGenericApplicationMessageHa
 
 	WindowsApplication->AddMessageHandler(*this);
 	QueryConnectedDevices();
-  
+
   // DFX - Fix a bug where if Playstation DS3 (usUsage=4) is detected, it won't register any other type 5 (DS4 and DS5)
   // Make sure to register all valid Gamepads/Joysticks
   UE_LOG(LogRawInputWindows, Log, TEXT("QueryConnectedDevices found %d devices"), ConnectedDeviceInfoList.Num());
   auto tmpConnInfoList = ConnectedDeviceInfoList; // Copy list since is reset everytime inside RegisterInputDevice
   for (const FConnectedDeviceInfo& Device : tmpConnInfoList) {
     if (Device.RIDDeviceInfo.dwType == RIM_TYPEHID) {
-      if ((Device.RIDDeviceInfo.hid.usUsagePage == 1) && 
-          (Device.RIDDeviceInfo.hid.usUsage == 5 || Device.RIDDeviceInfo.hid.usUsage == 4)) { // 5=Gamepad, 4=Joystick
+      if ((Device.RIDDeviceInfo.hid.usUsagePage == 1) &&
+        (Device.RIDDeviceInfo.hid.usUsage == 5 || Device.RIDDeviceInfo.hid.usUsage == 4)) { // 5=Gamepad, 4=Joystick
         int32 dHandle = RegisterInputDevice(RIM_TYPEHID, 0, Device.RIDDeviceInfo.hid.usUsage, Device.RIDDeviceInfo.hid.usUsagePage, Device.hDevice);
 
         if ((GetDefault<URawInputSettings>()->bRegisterDefaultDevice) && (DefaultDeviceHandle == INDEX_NONE)) {
@@ -125,17 +125,17 @@ FRawInputWindows::FRawInputWindows(const TSharedRef<FGenericApplicationMessageHa
 	// Register a default device if desired
 	//if (GetDefault<URawInputSettings>()->bRegisterDefaultDevice)
 	//{
-		//const uint32 Flags = 0;
-		//const int32 PageID = 0x01;
-		//int32 DeviceID = 0x04;
-		//
-		//DefaultDeviceHandle = RegisterInputDevice(RIM_TYPEHID, Flags, DeviceID, PageID, nullptr);
+	//	const uint32 Flags = 0;
+	//	const int32 PageID = 0x01;
+	//	int32 DeviceID = 0x04;
+	//	
+	//	DefaultDeviceHandle = RegisterInputDevice(RIM_TYPEHID, Flags, DeviceID, PageID, nullptr);
 
-		//if (DefaultDeviceHandle == INDEX_NONE)
-		//{
-		//	DeviceID = 0x05;
-		//	DefaultDeviceHandle = RegisterInputDevice(RIM_TYPEHID, Flags, DeviceID, PageID, nullptr);
-		//}
+	//	if (DefaultDeviceHandle == INDEX_NONE)
+	//	{
+	//		DeviceID = 0x05;
+	//		DefaultDeviceHandle = RegisterInputDevice(RIM_TYPEHID, Flags, DeviceID, PageID, nullptr);
+	//	}
 	//}
 
 	AHUD::OnShowDebugInfo.AddRaw(this, &FRawInputWindows::ShowDebugInfo);
@@ -190,7 +190,7 @@ int32 FRawInputWindows::RegisterInputDevice(const int32 DeviceType, const int32 
 	if (bResult == FALSE)
 	{
 		const DWORD LastErrorCode = GetLastError();
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Error registering device %d (%d). Code %d"), DeviceID, PageID, LastErrorCode);
+		UE_LOGF(LogRawInputWindows, Warning, "Error registering device %d (%d). Code %d", DeviceID, PageID, LastErrorCode);
 	}
 	else
 	{
@@ -201,49 +201,30 @@ int32 FRawInputWindows::RegisterInputDevice(const int32 DeviceType, const int32 
 		{
 			// Register all devices of the type specified in the param
 			// NOTE: This it kind of a hack. A true refactor of the RawInputPlugin is required but this will make it usable with multiple complementary devices. 
-			//bool bWasConnected = false;
-			//for (const FConnectedDeviceInfo& ConnectedDeviceInfo : ConnectedDeviceInfoList)
-			//{
-			//	if (CompareDeviceInfo(ConnectedDeviceInfo.RIDDeviceInfo, DeviceData))
-			//	{
-			//		DeviceHandle = GetNextInputHandle();
-			//		RegisteredDeviceList.Add(DeviceHandle, DeviceData);
+			bool bWasConnected = false;
+			for (const FConnectedDeviceInfo& ConnectedDeviceInfo : ConnectedDeviceInfoList)
+			{
+				if (CompareDeviceInfo(ConnectedDeviceInfo.RIDDeviceInfo, DeviceData))
+				{
+					DeviceHandle = GetNextInputHandle();
+					RegisteredDeviceList.Add(DeviceHandle, DeviceData);
 
-			//		FRawWindowsDeviceEntry& RegisteredDeviceInfo = RegisteredDeviceList[DeviceHandle];
-			//		CopyConnectedDeviceInfo(RegisteredDeviceInfo, &ConnectedDeviceInfo);
+					FRawWindowsDeviceEntry& RegisteredDeviceInfo = RegisteredDeviceList[DeviceHandle];
+					CopyConnectedDeviceInfo(RegisteredDeviceInfo, &ConnectedDeviceInfo);
 
-			//		UE_LOG(LogRawInputWindows, Log, TEXT("VendorID:%04X ProductID:%04X"), RegisteredDeviceInfo.DeviceData.VendorID, RegisteredDeviceInfo.DeviceData.ProductID);
+					UE_LOGF(LogRawInputWindows, Log, "VendorID:%04X ProductID:%04X", RegisteredDeviceInfo.DeviceData.VendorID, RegisteredDeviceInfo.DeviceData.ProductID);
 
-			//		bWasConnected = true;
+					bWasConnected = true;
 
-			//		SetupBindings(DeviceHandle, true);
+					SetupBindings(DeviceHandle, true);
 
-			//		UE_LOG(LogRawInputWindows, Log, TEXT("Device was registered succesfully and is connected (Usage:%d UsagePage:%d)"), DeviceData.Usage, DeviceData.UsagePage);
-			//	}
-			//}
-
-      // DFX
-      for (const FConnectedDeviceInfo& ConnectedDeviceInfo : ConnectedDeviceInfoList) {
-      	if ((ConnectedDeviceInfo.hDevice == DeviceData.hDevice) &&
-           (CompareDeviceInfo(ConnectedDeviceInfo.RIDDeviceInfo, DeviceData)))	{
-          DeviceHandle = GetNextInputHandle();
-          RegisteredDeviceList.Add(DeviceHandle, DeviceData);
-          FRawWindowsDeviceEntry& RegisteredDeviceInfo = RegisteredDeviceList[DeviceHandle];
-          CopyConnectedDeviceInfo(RegisteredDeviceInfo, &ConnectedDeviceInfo);
-          SetupBindings(DeviceHandle, true);
-          UE_LOG(LogRawInputWindows, Log, 
-            TEXT("Device VendorID:%04X ProductID:%04X succesfully registered and is connected (Usage:%d UsagePage:%d)."), 
-            RegisteredDeviceInfo.DeviceData.VendorID, 
-            RegisteredDeviceInfo.DeviceData.ProductID, 
-            DeviceData.Usage, 
-            DeviceData.UsagePage);
-          break;
-        }
-      }
-    }
+					UE_LOGF(LogRawInputWindows, Log, "Device was registered succesfully and is connected (Usage:%d UsagePage:%d)", DeviceData.Usage, DeviceData.UsagePage);
+				}
+			}
+		}
 		else
 		{
-			UE_LOG(LogRawInputWindows, Verbose, TEXT("Device already registered."));
+			UE_LOGF(LogRawInputWindows, Warning, "Device already registered.");
 		}
 	}
 	return DeviceHandle;
@@ -266,7 +247,7 @@ int32 FRawInputWindows::FindRegisteredDeviceHandle(const FRawInputRegisteredDevi
 {
 	for (const TPair<int32, FRawWindowsDeviceEntry>& DeviceEntryPair : RegisteredDeviceList)
 	{
- 		if (DeviceEntryPair.Value.DeviceData.hDevice == InDeviceData.hDevice)
+ 		if (DeviceEntryPair.Value.DeviceData == InDeviceData)
  		{
  			return DeviceEntryPair.Key;
  		}
@@ -452,7 +433,7 @@ void FRawInputWindows::BindButtonForDevice(const int32 DeviceHandle, const FName
 {
 	if (ButtonIndex > MAX_NUM_CONTROLLER_BUTTONS)
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Invalid button index: %d"), ButtonIndex);
+		UE_LOGF(LogRawInputWindows, Warning, "Invalid button index: %d", ButtonIndex);
 		return;
 	}
 	FRawWindowsDeviceEntry* DeviceEntry = RegisteredDeviceList.Find(DeviceHandle);
@@ -462,7 +443,7 @@ void FRawInputWindows::BindButtonForDevice(const int32 DeviceHandle, const FName
 	}
 	else
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Invalid device handle: %d"),DeviceHandle);
+		UE_LOGF(LogRawInputWindows, Warning, "Invalid device handle: %d",DeviceHandle);
 	}
 }
 
@@ -470,7 +451,7 @@ void FRawInputWindows::BindAnalogForDevice(const int32 DeviceHandle, const FName
 {
 	if (AxisIndex > MAX_NUM_CONTROLLER_ANALOG)
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Invalid axis index:%d"), AxisIndex);
+		UE_LOGF(LogRawInputWindows, Warning, "Invalid axis index:%d", AxisIndex);
 		return;
 	}
 	FRawWindowsDeviceEntry* DeviceEntry = RegisteredDeviceList.Find(DeviceHandle);
@@ -480,7 +461,7 @@ void FRawInputWindows::BindAnalogForDevice(const int32 DeviceHandle, const FName
 	}
 	else
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Invalid device handle:%d"), DeviceHandle);
+		UE_LOGF(LogRawInputWindows, Warning, "Invalid device handle:%d", DeviceHandle);
 	}
 }
 
@@ -488,7 +469,7 @@ void FRawInputWindows::SetAnalogAxisIsInverted(const int32 DeviceHandle, const i
 {
 	if (AxisIndex >= MAX_NUM_CONTROLLER_ANALOG)
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Invalid axis index:%d"), AxisIndex);
+		UE_LOGF(LogRawInputWindows, Warning, "Invalid axis index:%d", AxisIndex);
 		return;
 	}
 	FRawWindowsDeviceEntry* DeviceEntry = RegisteredDeviceList.Find(DeviceHandle);
@@ -508,7 +489,7 @@ void FRawInputWindows::SetAnalogAxisIsInverted(const int32 DeviceHandle, const i
 	}
 	else
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Invalid device handle:%d"), DeviceHandle);
+		UE_LOGF(LogRawInputWindows, Warning, "Invalid device handle:%d", DeviceHandle);
 	}
 }
 
@@ -516,7 +497,7 @@ void FRawInputWindows::SetAnalogAxisOffset(const int32 DeviceHandle, const int32
 {
 	if (AxisIndex >= MAX_NUM_CONTROLLER_ANALOG)
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Invalid axis index:%d"), AxisIndex);
+		UE_LOGF(LogRawInputWindows, Warning, "Invalid axis index:%d", AxisIndex);
 		return;
 	}
 	FRawWindowsDeviceEntry* DeviceEntry = RegisteredDeviceList.Find(DeviceHandle);
@@ -536,7 +517,7 @@ void FRawInputWindows::SetAnalogAxisOffset(const int32 DeviceHandle, const int32
 	}
 	else
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Invalid device handle:%d"), DeviceHandle);
+		UE_LOGF(LogRawInputWindows, Warning, "Invalid device handle:%d", DeviceHandle);
 	}
 }
 
@@ -588,7 +569,7 @@ bool FRawInputWindows::ProcessMessage(const HWND hwnd, const uint32 Msg, const W
 
 				if (::GetRawInputDeviceInfo(RawInputDataBuffer->header.hDevice, RIDI_PREPARSEDDATA, nullptr, &BufferSize) != RAW_INPUT_ERROR)
 				{
-					PreParsedData.SetNumUninitialized(BufferSize + 1, false);
+					PreParsedData.SetNumUninitialized(BufferSize + 1, EAllowShrinking::No);
 							
 					if (::GetRawInputDeviceInfo(RawInputDataBuffer->header.hDevice, RIDI_PREPARSEDDATA, PreParsedData.GetData(), &BufferSize) != RAW_INPUT_ERROR)
 					{
@@ -606,7 +587,7 @@ bool FRawInputWindows::ProcessMessage(const HWND hwnd, const uint32 Msg, const W
 					for (const TPair<int32, FRawWindowsDeviceEntry>& DeviceEntryPair : RegisteredDeviceList)
 					{
 						const FRawWindowsDeviceEntry& EachEntry = DeviceEntryPair.Value;
-						if (DeviceData.hDevice == EachEntry.DeviceData.hDevice)
+						if (DeviceData == EachEntry.DeviceData)
 						{
 							if (!EachEntry.bIsConnected)
 							{
@@ -701,7 +682,7 @@ void FRawInputWindows::ParseInputData(const int32 InHandle, const RAWINPUT* InRa
 		
 	if (HIDStatus != HIDP_STATUS_SUCCESS)
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Failed to read button caps: %x:%s"), (int32)HIDStatus, *GetErrorString(HIDStatus));
+		UE_LOGF(LogRawInputWindows, Warning, "Failed to read button caps: %x:%ls", (int32)HIDStatus, *GetErrorString(HIDStatus));
 	}
 	else
 	{
@@ -715,7 +696,7 @@ void FRawInputWindows::ParseInputData(const int32 InHandle, const RAWINPUT* InRa
 		HIDStatus = DLLPointers.HidP_GetUsages(HIDP_REPORT_TYPE::HidP_Input, ButtonCapsBuffer[0].UsagePage, 0, ButtonDataBuffer, &UsageNumButtonCaps, InPreParsedData, (PCHAR)InRawInputDataBuffer->data.hid.bRawData, InRawInputDataBuffer->data.hid.dwSizeHid);
 		if (HIDStatus != HIDP_STATUS_SUCCESS)
 		{
-			UE_LOG(LogRawInputWindows, Warning, TEXT("Failed to read button data: %x:%s"), (int32)HIDStatus, *GetErrorString(HIDStatus));
+			UE_LOGF(LogRawInputWindows, Warning, "Failed to read button data: %x:%ls", (int32)HIDStatus, *GetErrorString(HIDStatus));
 		}
 		else
 		{
@@ -750,7 +731,7 @@ void FRawInputWindows::ParseInputData(const int32 InHandle, const RAWINPUT* InRa
 	HIDStatus = DLLPointers.HidP_GetValueCaps(HIDP_REPORT_TYPE::HidP_Input, ValueCapsBuffer, &NumValueCaps, InPreParsedData);
 	if (HIDStatus != HIDP_STATUS_SUCCESS)
 	{
-		UE_LOG(LogRawInputWindows, Warning, TEXT("Failed to read value caps: %x:%s"), (int32)HIDStatus, *GetErrorString(HIDStatus));
+		UE_LOGF(LogRawInputWindows, Warning, "Failed to read value caps: %x:%ls", (int32)HIDStatus, *GetErrorString(HIDStatus));
 	}
 	else
 	{
@@ -762,7 +743,7 @@ void FRawInputWindows::ParseInputData(const int32 InHandle, const RAWINPUT* InRa
 				HIDStatus = DLLPointers.HidP_GetUsageValue(HIDP_REPORT_TYPE::HidP_Input, ValueCapsBuffer[iValue].UsagePage, 0, ValueCapsBuffer[iValue].Range.UsageMin, &EachValue, InPreParsedData, (PCHAR)InRawInputDataBuffer->data.hid.bRawData, InRawInputDataBuffer->data.hid.dwSizeHid);
 				if (HIDStatus != HIDP_STATUS_SUCCESS)
 				{
-					UE_LOG(LogRawInputWindows, Warning, TEXT("Failed to read value %d. %x:%s"), iValue, (int32)HIDStatus, *GetErrorString(HIDStatus));
+					UE_LOGF(LogRawInputWindows, Warning, "Failed to read value %d. %x:%ls", iValue, (int32)HIDStatus, *GetErrorString(HIDStatus));
 				}
 				else
 				{
@@ -814,18 +795,18 @@ void FRawInputWindows::QueryConnectedDevices()
 		//Force the use of ANSI versions of these calls
 		if (GetRawInputDeviceInfoA(Device.hDevice, RIDI_DEVICENAME, nullptr, &NameLen) == RAW_INPUT_ERROR)
 		{
-			UE_LOG(LogRawInputWindows, Warning, TEXT("Error reading device name length"));
+			UE_LOGF(LogRawInputWindows, Warning, "Error reading device name length");
 			continue;
 		}
 
-		DeviceNameBuffer.SetNumUninitialized(NameLen + 1, false);
+		DeviceNameBuffer.SetNumUninitialized(NameLen + 1, EAllowShrinking::No);
 
 		if (GetRawInputDeviceInfoA(Device.hDevice, RIDI_DEVICENAME, DeviceNameBuffer.GetData(), &NameLen) == RAW_INPUT_ERROR)
 		{
 			const DWORD LastErrorCode = GetLastError();
 			if (LastErrorCode != ERROR_FILE_NOT_FOUND)
 			{
-				UE_LOG(LogRawInputWindows, Warning, TEXT("Error reading device name (GetLastError = %d)"), LastErrorCode);
+				UE_LOGF(LogRawInputWindows, Warning, "Error reading device name (GetLastError = %d)", LastErrorCode);
 			}
 			continue;
 		}
@@ -834,25 +815,25 @@ void FRawInputWindows::QueryConnectedDevices()
 		FString DeviceName = ANSI_TO_TCHAR(DeviceNameBuffer.GetData());
 		DeviceName.ReplaceInline(TEXT("#"), TEXT("\\"), ESearchCase::CaseSensitive);
 		
-		UE_LOG(LogRawInputWindows, Verbose, TEXT("Found device %s"), *DeviceName);
+		UE_LOGF(LogRawInputWindows, Verbose, "Found device %ls", *DeviceName);
 
 		RID_DEVICE_INFO RawDeviceInfo = { 0 };
 		UINT DeviceInfoLen = 0;
 		if (GetRawInputDeviceInfoA(Device.hDevice, RIDI_DEVICEINFO, nullptr, &DeviceInfoLen) == RAW_INPUT_ERROR)
 		{
-			UE_LOG(LogRawInputWindows, Warning, TEXT("Error reading device info size for %s"), *DeviceName);
+			UE_LOGF(LogRawInputWindows, Warning, "Error reading device info size for %ls", *DeviceName);
 			continue;
 		}
 
 		if (DeviceInfoLen != sizeof(RawDeviceInfo))
 		{
-			UE_LOG(LogRawInputWindows, Warning, TEXT("Device info size mismatch. Expected for %d but was actually %d"), sizeof( RawDeviceInfo), DeviceInfoLen);
+			UE_LOGF(LogRawInputWindows, Warning, "Device info size mismatch. Expected for %zu but was actually %d", sizeof( RawDeviceInfo), DeviceInfoLen);
 			continue;
 		}
 
 		if (GetRawInputDeviceInfo(Device.hDevice,RIDI_DEVICEINFO, &RawDeviceInfo, &DeviceInfoLen) == RAW_INPUT_ERROR)
 		{
-			UE_LOG(LogRawInputWindows, Warning, TEXT("Error reading device info for %s"), *DeviceName);
+			UE_LOGF(LogRawInputWindows, Warning, "Error reading device info for %ls", *DeviceName);
 			continue;
 		}
 
@@ -873,14 +854,14 @@ void FRawInputWindows::QueryConnectedDevices()
 				bool bWasConnected = DeviceEntryPair.Value.bIsConnected;
 
 				bFoundConnected = true;
-				//CopyConnectedDeviceInfo(DeviceEntryPair.Value, &ConnectedDeviceInfo);
+				CopyConnectedDeviceInfo(DeviceEntryPair.Value, &ConnectedDeviceInfo);
 
 				if (!bWasConnected)
 				{
 					// If this is the first connection, apply bindings now
 					SetupBindings(DeviceEntryPair.Key, true);
 					
-					UE_LOG(LogRawInputWindows, Log, TEXT("Device was connected after registration (Usage:%d UsagePage:%d)"), DeviceEntryPair.Value.DeviceData.Usage, DeviceEntryPair.Value.DeviceData.UsagePage);				
+					UE_LOGF(LogRawInputWindows, Log, "Device was connected after registration (Usage:%d UsagePage:%d)", DeviceEntryPair.Value.DeviceData.Usage, DeviceEntryPair.Value.DeviceData.UsagePage);				
 				}
 
 				break;
@@ -892,6 +873,8 @@ void FRawInputWindows::QueryConnectedDevices()
 			CopyConnectedDeviceInfo(DeviceEntryPair.Value, nullptr);
 		}
 	}
+
+	UE_LOGF(LogRawInputWindows, Log, "QueryConnectedDevices found %d devices", ConnectedDeviceInfoList.Num());
 }
 
 FString FRawInputWindows::GetErrorString(const int32 StatusCode) const
@@ -1003,19 +986,19 @@ void FRawInputWindows::CopyConnectedDeviceInfo(FRawWindowsDeviceEntry& Registere
 
 void FRawInputWindows::ShowDeviceInfo(const FConnectedDeviceInfo& DeviceInfo) const
 {
-	UE_LOG(LogRawInputWindows, Verbose, TEXT("%s"), *DeviceInfo.DeviceName);
-	UE_LOG(LogRawInputWindows, Verbose, TEXT("Device type %d"), DeviceInfo.RIDDeviceInfo.dwType);
+	UE_LOGF(LogRawInputWindows, Verbose, "%ls", *DeviceInfo.DeviceName);
+	UE_LOGF(LogRawInputWindows, Verbose, "Device type %d", DeviceInfo.RIDDeviceInfo.dwType);
 	switch( DeviceInfo.RIDDeviceInfo.dwType)
 	{
 	case RIM_TYPEMOUSE:
-		UE_LOG(LogRawInputWindows, Verbose, TEXT("dwId:%d, dwNumberOfButtons:%d, dwSampleRate:%d, fHasHorizontalWheel:%d"),
+		UE_LOGF(LogRawInputWindows, Verbose, "dwId:%d, dwNumberOfButtons:%d, dwSampleRate:%d, fHasHorizontalWheel:%d",
 		DeviceInfo.RIDDeviceInfo.mouse.dwId,
 		DeviceInfo.RIDDeviceInfo.mouse.dwNumberOfButtons,
 		DeviceInfo.RIDDeviceInfo.mouse.dwSampleRate,
 		DeviceInfo.RIDDeviceInfo.mouse.fHasHorizontalWheel);
 		break;
 	case RIM_TYPEKEYBOARD:
-		UE_LOG(LogRawInputWindows, Verbose, TEXT("dwType:%d, dwSubType:%d, dwKeyboardMode:%d, dwNumberOfFunctionKeys:%d,dwNumberOfIndicators:%d,dwNumberOfKeysTotal:%d"),
+		UE_LOGF(LogRawInputWindows, Verbose, "dwType:%d, dwSubType:%d, dwKeyboardMode:%d, dwNumberOfFunctionKeys:%d,dwNumberOfIndicators:%d,dwNumberOfKeysTotal:%d",
 		DeviceInfo.RIDDeviceInfo.keyboard.dwType,
 		DeviceInfo.RIDDeviceInfo.keyboard.dwSubType,
 		DeviceInfo.RIDDeviceInfo.keyboard.dwKeyboardMode,
@@ -1024,7 +1007,7 @@ void FRawInputWindows::ShowDeviceInfo(const FConnectedDeviceInfo& DeviceInfo) co
 		DeviceInfo.RIDDeviceInfo.keyboard.dwNumberOfKeysTotal);
 		break;
 	case RIM_TYPEHID:
-		UE_LOG(LogRawInputWindows, Verbose, TEXT("dwVendorId:%04X, dwProductId:%04X, dwVersionNumber:%d, usUsagePage:%d,usUsage:%d"),
+		UE_LOGF(LogRawInputWindows, Verbose, "dwVendorId:%04X, dwProductId:%04X, dwVersionNumber:%d, usUsagePage:%d,usUsage:%d",
 		DeviceInfo.RIDDeviceInfo.hid.dwVendorId,
 		DeviceInfo.RIDDeviceInfo.hid.dwProductId,
 		DeviceInfo.RIDDeviceInfo.hid.dwVersionNumber,
@@ -1041,66 +1024,80 @@ void FRawInputWindows::SendControllerEvents()
 	FPlatformUserId UserId = IPlatformInputDeviceMapper::Get().GetPrimaryPlatformUser();
 	FInputDeviceId DeviceId = IPlatformInputDeviceMapper::Get().GetDefaultInputDevice();
 	
-	for (TPair<int32, FRawWindowsDeviceEntry>& DeviceEntryPair : RegisteredDeviceList) {
+	for (TPair<int32, FRawWindowsDeviceEntry>& DeviceEntryPair : RegisteredDeviceList)
+	{
 		FRawWindowsDeviceEntry& DeviceEntry = DeviceEntryPair.Value;
 		// This is set to true if we need to send this data again next time
 		// e.g if a button is still down or axis has a value (e.g. wheel not in centre)
-		if (DeviceEntry.bNeedsUpdate) {
+		if (DeviceEntry.bNeedsUpdate)
+		{
+PRAGMA_DISABLE_DEPRECATION_WARNINGS
 			FInputDeviceScope InputScope(this, RawInputInterfaceName, DeviceEntryPair.Key, DeviceEntry.DeviceData.DeviceName);
+PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
-			for (FButtonData& DeviceButtonData : DeviceEntry.ButtonData) {
-				if (!DeviceButtonData.ButtonName.IsNone()) {
+			for (FButtonData& DeviceButtonData : DeviceEntry.ButtonData)
+			{
+				if (!DeviceButtonData.ButtonName.IsNone())
+				{
 					// If the state changed, fire a button pressed
-					if (DeviceButtonData.bButtonState != DeviceButtonData.bPreviousButtonState)	{
-						if (DeviceButtonData.bButtonState) {
+					if (DeviceButtonData.bButtonState != DeviceButtonData.bPreviousButtonState)
+					{
+						if (DeviceButtonData.bButtonState)
+						{
 							MessageHandler->OnControllerButtonPressed(DeviceButtonData.ButtonName, UserId, DeviceId, false);								
-						}	else {
+						}
+						else
+						{
 							MessageHandler->OnControllerButtonReleased(DeviceButtonData.ButtonName, UserId, DeviceId, false);
 						}
 						DeviceButtonData.bPreviousButtonState = DeviceButtonData.bButtonState;
 					}
-					else if (DeviceButtonData.bButtonState) { // state not changed - but is true.. which means it must have been true last time.. so is repeat
+					else if (DeviceButtonData.bButtonState) // state not changed - but is true.. which means it must have been true last time.. so is repeat
+					{
 						MessageHandler->OnControllerButtonPressed(DeviceButtonData.ButtonName, UserId, DeviceId, true);							
 					}
+						
 				}
 			}
 
-			for (const FAnalogData& DeviceAnalogData : DeviceEntry.AnalogData) {
-				if (!DeviceAnalogData.KeyName.IsNone() && DeviceAnalogData.HasValue()) {
+			for (const FAnalogData& DeviceAnalogData : DeviceEntry.AnalogData)
+			{
+				if (!DeviceAnalogData.KeyName.IsNone() && DeviceAnalogData.HasValue())
+				{
 					MessageHandler->OnControllerAnalog(DeviceAnalogData.KeyName, UserId, DeviceId, DeviceAnalogData.GetValue());
 				}
 			}
 
-			for (PlaystationID& ps : psID) {
-				if (DeviceEntry.DeviceData.VendorID == ps.vID && DeviceEntry.DeviceData.ProductID == ps.pID) {
-					FAnalogData* DPadAxis1D = &DeviceEntry.AnalogData[ps.aID];
-					int iPrevValue = FMath::FloorToInt(DPadAxis1D->PreviousValue);
-					int iValue = FMath::FloorToInt(DPadAxis1D->Value);
-					bool bIsRepeat = iValue == iPrevValue;
+      for (PlaystationID& ps : psID) {
+        if (DeviceEntry.DeviceData.VendorID == ps.vID && DeviceEntry.DeviceData.ProductID == ps.pID) {
+          FAnalogData* DPadAxis1D = &DeviceEntry.AnalogData[ps.aID];
+          int iPrevValue = FMath::FloorToInt(DPadAxis1D->PreviousValue);
+          int iValue = FMath::FloorToInt(DPadAxis1D->Value);
+          bool bIsRepeat = iValue == iPrevValue;
 
-					if (!bIsRepeat) {
-						if (iPrevValue != 8) {
-							if (iPrevValue % 2 == 1) {
-								MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue - 1], UserId, DeviceId, bIsRepeat);
-								iPrevValue++;
-								if (iPrevValue == 8) iPrevValue = 0;
-							}
-							MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue], UserId, DeviceId, bIsRepeat);
-						}
+          if (!bIsRepeat) {
+            if (iPrevValue != 8) {
+              if (iPrevValue % 2 == 1) {
+                MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue - 1], UserId, DeviceId, bIsRepeat);
+                iPrevValue++;
+                if (iPrevValue == 8) iPrevValue = 0;
+              }
+              MessageHandler->OnControllerButtonReleased(DPadMap[iPrevValue], UserId, DeviceId, bIsRepeat);
+            }
 
-						if (iValue != 8) {
-							if (iValue % 2 == 1) {
-								MessageHandler->OnControllerButtonPressed(DPadMap[iValue - 1], UserId, DeviceId, bIsRepeat);
-								iValue++;
-								if (iValue == 8) iValue = 0;
-							}
-							MessageHandler->OnControllerButtonPressed(DPadMap[iValue], UserId, DeviceId, bIsRepeat);
-						}
-						DPadAxis1D->PreviousValue = DPadAxis1D->Value;
-					}
-				}
-			}
+            if (iValue != 8) {
+              if (iValue % 2 == 1) {
+                MessageHandler->OnControllerButtonPressed(DPadMap[iValue - 1], UserId, DeviceId, bIsRepeat);
+                iValue++;
+                if (iValue == 8) iValue = 0;
+              }
+              MessageHandler->OnControllerButtonPressed(DPadMap[iValue], UserId, DeviceId, bIsRepeat);
+            }
+            DPadAxis1D->PreviousValue = DPadAxis1D->Value;
+          }
+        }
+      }
 
 		}
-	}
+	}	
 }
